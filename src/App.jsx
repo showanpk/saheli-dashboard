@@ -353,7 +353,7 @@ function buildTrendPoints(data, width, height, padding) {
 
 function MiniTrendCard({ title, data, stroke, fill, unit = "", changeLabel }) {
   const width = 176;
-  const height = 78;
+  const height = 72;
   const padding = 9;
   const linePoints = useMemo(
     () => buildTrendPoints(data, width, height, padding),
@@ -371,7 +371,7 @@ function MiniTrendCard({ title, data, stroke, fill, unit = "", changeLabel }) {
   const latestValue = `${data[data.length - 1]}${unit}`;
 
   return (
-    <article className="min-h-[124px] rounded-xl border border-slate-200 bg-white p-2.5 shadow-sm">
+    <article className="h-full min-h-0 rounded-xl border border-slate-200 bg-white p-2 shadow-sm">
       <div className="flex items-start justify-between gap-2">
         <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-600">
           {title}
@@ -382,7 +382,7 @@ function MiniTrendCard({ title, data, stroke, fill, unit = "", changeLabel }) {
       </div>
       <svg
         viewBox={`0 0 ${width} ${height}`}
-        className="mt-1.5 h-16 w-full"
+        className="mt-1 h-14 w-full"
         aria-hidden="true"
       >
         <line
@@ -406,7 +406,7 @@ function MiniTrendCard({ title, data, stroke, fill, unit = "", changeLabel }) {
           <circle cx={lastPoint.x} cy={lastPoint.y} r="2.9" fill={stroke} />
         )}
       </svg>
-      <div className="mt-1.5 flex items-center justify-between text-[10px]">
+      <div className="mt-1 flex items-center justify-between text-[10px]">
         <span className="font-medium text-slate-500">Latest reading</span>
         <span className="rounded-full bg-slate-100 px-2 py-0.5 font-semibold text-slate-700">
           {latestValue}
@@ -424,7 +424,7 @@ function DualLineTrendCard({
   diastolicStroke,
 }) {
   const width = 176;
-  const height = 78;
+  const height = 72;
   const padding = 9;
   const combined = [...systolic, ...diastolic];
   const min = Math.min(...combined);
@@ -464,7 +464,7 @@ function DualLineTrendCard({
     .map(Number);
 
   return (
-    <article className="min-h-[132px] rounded-xl border border-slate-200 bg-white p-2.5 shadow-sm">
+    <article className="h-full min-h-0 rounded-xl border border-slate-200 bg-white p-2 shadow-sm">
       <div className="flex items-start justify-between gap-2">
         <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-600">
           {title}
@@ -488,7 +488,7 @@ function DualLineTrendCard({
       </div>
       <svg
         viewBox={`0 0 ${width} ${height}`}
-        className="mt-1.5 h-16 w-full"
+        className="mt-1 h-14 w-full"
         aria-hidden="true"
       >
         <line
@@ -534,7 +534,7 @@ function DualLineTrendCard({
           />
         )}
       </svg>
-      <div className="mt-1.5 flex items-center justify-between text-[10px]">
+      <div className="mt-1 flex items-center justify-between text-[10px]">
         <span className="font-medium text-slate-500">Latest reading</span>
         <span className="rounded-full bg-slate-100 px-2 py-0.5 font-semibold text-slate-700">
           {systolic[systolic.length - 1]}/{diastolic[diastolic.length - 1]} mmHg
@@ -678,7 +678,7 @@ function App() {
                 initial="initial"
                 animate="animate"
                 exit="exit"
-                className="grid h-full min-h-0 grid-rows-[auto_auto_auto_auto_1fr_auto] gap-2"
+                className="grid h-full min-h-0 grid-rows-[auto_auto_auto_minmax(0,0.95fr)_minmax(0,1.1fr)_auto] gap-2"
               >
                 <motion.div
                   variants={fadeUp}
@@ -779,13 +779,13 @@ function App() {
                   variants={stagger}
                   initial="initial"
                   animate="animate"
-                  className="grid min-h-0 grid-cols-2 gap-2.5 md:grid-cols-3"
+                  className="grid h-full min-h-0 grid-cols-2 auto-rows-fr gap-2 md:grid-cols-3"
                 >
                   {executiveSummary.kpis.map((kpi) => (
                     <motion.article
                       key={kpi.label}
                       variants={fadeUp}
-                      className="flex min-h-[84px] flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-[0_8px_20px_rgba(53,40,65,0.08)]"
+                      className="flex min-h-0 flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 bg-white p-1.5 shadow-[0_8px_20px_rgba(53,40,65,0.08)]"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-slate-500">
@@ -796,7 +796,7 @@ function App() {
                         </span>
                       </div>
                       <div>
-                        <p className="mt-1 text-[1.5rem] font-semibold leading-none text-slate-900 md:text-[1.7rem]">
+                        <p className="mt-1 text-[1.4rem] font-semibold leading-none text-slate-900 md:text-[1.55rem]">
                           <CountUp
                             value={kpi.value}
                             suffix={kpi.suffix || ""}
@@ -809,7 +809,7 @@ function App() {
                       </div>
                       <svg
                         viewBox="0 0 116 36"
-                        className="mt-1 h-4 w-full"
+                        className="mt-0.5 h-3.5 w-full"
                         aria-hidden="true"
                       >
                         <polyline
@@ -827,7 +827,7 @@ function App() {
 
                 <motion.div
                   variants={fadeUp}
-                  className="rounded-2xl border border-slate-200 bg-white p-2.5 shadow-sm"
+                  className="grid min-h-0 grid-rows-[auto_1fr] rounded-2xl border border-slate-200 bg-white p-2.5 shadow-sm"
                 >
                   <div className="mb-2 flex items-center justify-between">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#0d679a]">
@@ -837,7 +837,7 @@ function App() {
                       Assessment snapshots
                     </p>
                   </div>
-                  <div className="grid grid-cols-2 gap-2.5">
+                  <div className="grid h-full min-h-0 grid-cols-2 gap-2">
                     <MiniTrendCard
                       title="BMI Trend"
                       data={executiveHealthTrends.bmi}
@@ -872,7 +872,7 @@ function App() {
 
                 <motion.div
                   variants={fadeUp}
-                  className="rounded-2xl border border-slate-200 bg-white/90 px-3 py-1 text-[10.5px] leading-relaxed text-slate-600"
+                  className="rounded-2xl border border-slate-200 bg-white/90 px-3 py-0.5 text-[10px] leading-relaxed text-slate-600"
                 >
                   {executiveSummary.leadership}
                 </motion.div>
