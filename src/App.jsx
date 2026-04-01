@@ -332,6 +332,11 @@ function App() {
   const shouldReduceMotion = useReducedMotion();
   const isFirstPage = currentPage === 0;
   const isLastPage = currentPage === pages.length - 1;
+  const photoGridColumns = 4;
+  const photoGridRows = Math.max(
+    1,
+    Math.ceil(photoGallery.length / photoGridColumns),
+  );
 
   const cleanedActivities = useMemo(
     () =>
@@ -821,16 +826,21 @@ function App() {
 
                 <motion.article
                   variants={fadeUp}
-                  className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"
+                  className="grid min-h-0 grid-rows-[auto_1fr] rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"
                 >
                   <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#0d679a]">
                     Photo Story ({photoGallery.length})
                   </p>
-                  <div className="mt-2 grid h-[calc(100%-1.4rem)] grid-cols-4 auto-rows-[52px] gap-1.5">
+                  <div
+                    className="mt-2 grid min-h-0 h-full grid-cols-4 gap-1.5"
+                    style={{
+                      gridTemplateRows: `repeat(${photoGridRows}, minmax(0, 1fr))`,
+                    }}
+                  >
                     {photoGallery.map((photo, index) => (
                       <div
                         key={photo.alt + index}
-                        className={photo.className || ""}
+                        className={`min-h-0 ${photo.className || ""}`}
                         title={photo.label}
                       >
                         <PhotoTile
