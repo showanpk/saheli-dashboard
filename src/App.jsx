@@ -1,9 +1,14 @@
 ﻿import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import saheliLogo from "./assets/saheli-logo.svg";
-import photo1 from "./assets/1.jpg";
-import photo2 from "./assets/2.png";
-import photo3 from "./assets/3.png";
+
+const localImageModules = import.meta.glob(
+  "./assets/*.{jpg,jpeg,png,JPG,JPEG,PNG}",
+  {
+    eager: true,
+    import: "default",
+  },
+);
 
 const pages = [
   { id: "executive", label: "Executive Summary" },
@@ -231,11 +236,16 @@ const managerCaseStudy = {
   ],
 };
 
-const photoGallery = [
-  { src: photo1, alt: "Community activity photo 1" },
-  { src: photo2, alt: "Community activity photo 2" },
-  { src: photo3, alt: "Community activity photo 3" },
-];
+const photoGallery = Object.entries(localImageModules)
+  .map(([path, src]) => {
+    const fileName = path.split("/").pop() || "Community image";
+    return {
+      src,
+      alt: fileName,
+      label: fileName,
+    };
+  })
+  .sort((a, b) => a.label.localeCompare(b.label));
 
 const sparklinePoints = "8,28 28,22 48,26 68,18 88,24 108,12";
 
@@ -814,13 +824,14 @@ function App() {
                   className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"
                 >
                   <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#0d679a]">
-                    Photo Story
+                    Photo Story ({photoGallery.length})
                   </p>
-                  <div className="mt-2 grid h-[calc(100%-1.4rem)] grid-cols-2 gap-2">
+                  <div className="mt-2 grid h-[calc(100%-1.4rem)] grid-cols-4 auto-rows-[52px] gap-1.5">
                     {photoGallery.map((photo, index) => (
                       <div
                         key={photo.alt + index}
                         className={photo.className || ""}
+                        title={photo.label}
                       >
                         <PhotoTile
                           src={photo.src}
