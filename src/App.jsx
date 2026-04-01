@@ -1,6 +1,11 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { flushSync } from "react-dom";
+import html2canvas from "html2canvas-pro";
+import { jsPDF } from "jspdf";
 import saheliLogo from "./assets/saheli-logo.svg";
+
+const Motion = motion;
 
 const localImageModules = import.meta.glob(
   "./assets/*.{jpg,jpeg,png,JPG,JPEG,PNG}",
@@ -35,21 +40,21 @@ const executiveSummary = {
     },
     {
       label: "Unique Participants",
-      value: 1897,
+      value: "2000+",
       suffix: "",
       detail: "People reached",
       trend: "+9%",
     },
     {
       label: "New Registrations",
-      value: 598,
+      value: "700+",
       suffix: "",
       detail: "New people engaged",
       trend: "+15%",
     },
     {
       label: "Women Reached",
-      value: 85,
+      value: "85",
       suffix: "%",
       detail: "Women participants",
       trend: "Sustained",
@@ -264,11 +269,13 @@ function CountUp({
   decimals = 0,
   duration = 900,
   isActive,
+  disableAnimation = false,
 }) {
   const [display, setDisplay] = useState(0);
+  const shouldAnimate = isActive && !disableAnimation;
 
   useEffect(() => {
-    if (!isActive || typeof value !== "number") {
+    if (!shouldAnimate || typeof value !== "number") {
       return;
     }
 
@@ -286,7 +293,7 @@ function CountUp({
 
     frameId = requestAnimationFrame(step);
     return () => cancelAnimationFrame(frameId);
-  }, [value, duration, isActive]);
+  }, [value, duration, shouldAnimate]);
 
   if (typeof value !== "number") {
     return (
@@ -298,7 +305,8 @@ function CountUp({
     );
   }
 
-  const formatted = display.toLocaleString("en-GB", {
+  const renderValue = disableAnimation ? value : display;
+  const formatted = renderValue.toLocaleString("en-GB", {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   });
@@ -352,8 +360,8 @@ function buildTrendPoints(data, width, height, padding) {
 }
 
 function MiniTrendCard({ title, data, stroke, fill, unit = "", changeLabel }) {
-  const width = 176;
-  const height = 68;
+  const width = 240;
+  const height = 78;
   const padding = 9;
   const linePoints = useMemo(
     () => buildTrendPoints(data, width, height, padding),
@@ -382,7 +390,7 @@ function MiniTrendCard({ title, data, stroke, fill, unit = "", changeLabel }) {
       </div>
       <svg
         viewBox={`0 0 ${width} ${height}`}
-        className="mt-0.5 h-11 w-full"
+        className="mt-0.5 h-12 w-full"
         aria-hidden="true"
       >
         <line
@@ -406,7 +414,7 @@ function MiniTrendCard({ title, data, stroke, fill, unit = "", changeLabel }) {
           <circle cx={lastPoint.x} cy={lastPoint.y} r="2.9" fill={stroke} />
         )}
       </svg>
-      <div className="mt-0.5 flex items-center justify-between text-[9px]">
+      <div className="mt-0.5 flex items-center justify-between text-[10px]">
         <span className="font-medium text-slate-500">Latest reading</span>
         <span className="rounded-full bg-slate-100 px-1.5 py-0.5 font-semibold text-slate-700">
           {latestValue}
@@ -423,8 +431,8 @@ function DualLineTrendCard({
   systolicStroke,
   diastolicStroke,
 }) {
-  const width = 176;
-  const height = 68;
+  const width = 240;
+  const height = 78;
   const padding = 9;
   const combined = [...systolic, ...diastolic];
   const min = Math.min(...combined);
@@ -442,8 +450,8 @@ function DualLineTrendCard({
       })
       .join(" ");
 
-  const systolicPoints = useMemo(() => toPoints(systolic), [systolic]);
-  const diastolicPoints = useMemo(() => toPoints(diastolic), [diastolic]);
+  const systolicPoints = toPoints(systolic);
+  const diastolicPoints = toPoints(diastolic);
   const systolicPointList = systolicPoints.split(" ");
   const diastolicPointList = diastolicPoints.split(" ");
   const systolicFirstX = systolicPointList[0]?.split(",")[0] || padding;
@@ -488,7 +496,7 @@ function DualLineTrendCard({
       </div>
       <svg
         viewBox={`0 0 ${width} ${height}`}
-        className="mt-0.5 h-11 w-full"
+        className="mt-0.5 h-12 w-full"
         aria-hidden="true"
       >
         <line
@@ -534,7 +542,7 @@ function DualLineTrendCard({
           />
         )}
       </svg>
-      <div className="mt-0.5 flex items-center justify-between text-[9px]">
+      <div className="mt-0.5 flex items-center justify-between text-[10px]">
         <span className="font-medium text-slate-500">Latest reading</span>
         <span className="rounded-full bg-slate-100 px-1.5 py-0.5 font-semibold text-slate-700">
           {systolic[systolic.length - 1]}/{diastolic[diastolic.length - 1]} mmHg
@@ -546,7 +554,10 @@ function DualLineTrendCard({
 
 function App() {
   const [currentPage, setCurrentPage] = useState(0);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [pdfExportError, setPdfExportError] = useState("");
   const shouldReduceMotion = useReducedMotion();
+  const reportContainerRef = useRef(null);
   const isFirstPage = currentPage === 0;
   const isLastPage = currentPage === pages.length - 1;
   const photoGridColumns = 4;
@@ -584,6 +595,129 @@ function App() {
     setCurrentPage((prev) => Math.min(prev + 1, pages.length - 1));
   const prevPage = () => setCurrentPage((prev) => Math.max(prev - 1, 0));
 
+  const handleExportPdf = async () => {
+    if (!reportContainerRef.current || isExportingPdf) {
+      return;
+    }
+
+    const startPage = currentPage;
+
+    try {
+      flushSync(() => {
+        setIsExportingPdf(true);
+      });
+      setPdfExportError("");
+
+      if (document.fonts?.ready) {
+        await document.fonts.ready;
+      }
+
+      const pdf = new jsPDF({
+        orientation: "landscape",
+        unit: "mm",
+        format: "a4",
+      });
+
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      for (let index = 0; index < pages.length; index += 1) {
+        flushSync(() => {
+          setCurrentPage(index);
+        });
+
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        const canvas = await html2canvas(reportContainerRef.current, {
+          backgroundColor: "#ffffff",
+          scale: Math.min(window.devicePixelRatio || 1, 1.5),
+          useCORS: true,
+          logging: false,
+          onclone: (clonedDoc) => {
+            const clonedRoot = clonedDoc.getElementById("report-export-root");
+            if (!clonedRoot) {
+              return;
+            }
+
+            clonedRoot.classList.add("pdf-export-mode");
+            const exportStyle = clonedDoc.createElement("style");
+            exportStyle.textContent = `
+              .pdf-export-mode {
+                background: #ffffff !important;
+                color: #1f2937 !important;
+              }
+              .pdf-export-mode * {
+                box-shadow: none !important;
+                text-shadow: none !important;
+                backdrop-filter: none !important;
+                -webkit-backdrop-filter: none !important;
+                border-color: #d1d5db !important;
+                animation: none !important;
+                transition: none !important;
+              }
+              .pdf-export-mode [class*="bg-"] {
+                background-image: none !important;
+              }
+            `;
+            clonedDoc.head.appendChild(exportStyle);
+          },
+        });
+
+        const imageData = canvas.toDataURL("image/jpeg", 0.95);
+        const imageAspect = canvas.width / canvas.height;
+        let renderWidth = pageWidth;
+        let renderHeight = renderWidth / imageAspect;
+
+        if (renderHeight > pageHeight) {
+          renderHeight = pageHeight;
+          renderWidth = renderHeight * imageAspect;
+        }
+
+        const offsetX = (pageWidth - renderWidth) / 2;
+        const offsetY = (pageHeight - renderHeight) / 2;
+
+        if (index > 0) {
+          pdf.addPage();
+        }
+
+        pdf.addImage(
+          imageData,
+          "JPEG",
+          offsetX,
+          offsetY,
+          renderWidth,
+          renderHeight,
+        );
+      }
+
+      const fileName = "saheli-report-full.pdf";
+
+      try {
+        pdf.save(fileName);
+      } catch {
+        const blob = pdf.output("blob");
+        const objectUrl = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = objectUrl;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(objectUrl);
+      }
+    } catch (error) {
+      console.error("Failed to export PDF", error);
+      setPdfExportError("Export failed. Please try again.");
+    } finally {
+      flushSync(() => {
+        setCurrentPage(startPage);
+        setIsExportingPdf(false);
+      });
+    }
+  };
+
   useEffect(() => {
     const onKeyDown = (event) => {
       if (event.key === "ArrowRight") {
@@ -612,6 +746,14 @@ function App() {
     },
   };
 
+  const pageVariants = isExportingPdf
+    ? {
+        initial: false,
+        animate: { opacity: 1, x: 0 },
+        exit: { opacity: 1, x: 0 },
+      }
+    : pageTransition;
+
   const fadeUp = {
     initial: { opacity: 0, y: shouldReduceMotion ? 0 : 14 },
     animate: {
@@ -634,7 +776,11 @@ function App() {
     <div className="relative h-screen overflow-hidden bg-[#f7f4fa] p-3 text-slate-800 md:p-4">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(230,0,126,0.13),transparent_38%),radial-gradient(circle_at_82%_18%,_rgba(13,103,154,0.14),transparent_30%),radial-gradient(circle_at_bottom_right,_rgba(246,166,35,0.11),transparent_35%)]" />
 
-      <div className="relative mx-auto flex h-full w-full max-w-[1450px] flex-col overflow-hidden rounded-[28px] border border-white/60 bg-white/85 p-3 shadow-[0_20px_60px_rgba(39,14,63,0.16)] backdrop-blur-sm md:p-4">
+      <div
+        ref={reportContainerRef}
+        id="report-export-root"
+        className="relative mx-auto flex h-full w-full max-w-[1450px] flex-col overflow-hidden rounded-[28px] border border-white/60 bg-white/85 p-3 shadow-[0_20px_60px_rgba(39,14,63,0.16)] backdrop-blur-sm md:p-4"
+      >
         <header className="mb-3 flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white/90 px-3 py-2 shadow-sm">
           <div className="flex items-center gap-3">
             <img
@@ -672,15 +818,15 @@ function App() {
         <div className="relative min-h-0 flex-1 overflow-hidden rounded-3xl border border-slate-200/80 bg-gradient-to-br from-white via-[#fdfbff] to-[#f5f8fc] p-3 md:p-4">
           <AnimatePresence mode="wait">
             {currentPage === 0 && (
-              <motion.section
+              <Motion.section
                 key="page-0"
-                variants={pageTransition}
-                initial="initial"
+                variants={pageVariants}
+                initial={isExportingPdf ? false : "initial"}
                 animate="animate"
-                exit="exit"
-                className="grid h-full min-h-0 grid-rows-[auto_auto_auto_minmax(0,0.88fr)_minmax(0,1.32fr)_auto] gap-2"
+                exit={isExportingPdf ? undefined : "exit"}
+                className="grid h-full min-h-0 grid-rows-[auto_auto_auto_minmax(0,0.92fr)_minmax(0,0.95fr)_auto] gap-2"
               >
-                <motion.div
+                <Motion.div
                   variants={fadeUp}
                   className="flex items-start justify-between gap-3"
                 >
@@ -703,22 +849,22 @@ function App() {
                       {executiveSummary.lens}
                     </p>
                   </div>
-                </motion.div>
+                </Motion.div>
 
-                <motion.div
+                <Motion.div
                   variants={fadeUp}
                   className="rounded-2xl border border-[#ed6ea7]/30 bg-[#fff4fa] px-2.5 py-2 text-[11px] leading-relaxed text-slate-700"
                 >
                   {executiveSummary.summary}
-                </motion.div>
+                </Motion.div>
 
-                <motion.div
+                <Motion.div
                   variants={stagger}
                   initial="initial"
                   animate="animate"
                   className="grid gap-3 lg:grid-cols-[1.2fr_1fr]"
                 >
-                  <motion.article
+                  <Motion.article
                     variants={fadeUp}
                     className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"
                   >
@@ -737,9 +883,9 @@ function App() {
                         />
                       ))}
                     </div>
-                  </motion.article>
+                  </Motion.article>
 
-                  <motion.article
+                  <Motion.article
                     variants={fadeUp}
                     className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"
                   >
@@ -772,17 +918,17 @@ function App() {
                         ))}
                       </div>
                     </div>
-                  </motion.article>
-                </motion.div>
+                  </Motion.article>
+                </Motion.div>
 
-                <motion.div
+                <Motion.div
                   variants={stagger}
                   initial="initial"
                   animate="animate"
                   className="grid h-full min-h-0 grid-cols-2 auto-rows-fr gap-2 md:grid-cols-3"
                 >
                   {executiveSummary.kpis.map((kpi) => (
-                    <motion.article
+                    <Motion.article
                       key={kpi.label}
                       variants={fadeUp}
                       className="flex min-h-0 flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 bg-white p-1.5 shadow-[0_8px_20px_rgba(53,40,65,0.08)]"
@@ -800,7 +946,8 @@ function App() {
                           <CountUp
                             value={kpi.value}
                             suffix={kpi.suffix || ""}
-                            isActive={currentPage === 0}
+                            isActive={currentPage === 0 && !isExportingPdf}
+                            disableAnimation={isExportingPdf}
                           />
                         </p>
                         <p className="mt-1 text-[10px] text-slate-500">
@@ -821,11 +968,11 @@ function App() {
                         />
                         <circle cx="108" cy="12" r="2.5" fill="#f59e0b" />
                       </svg>
-                    </motion.article>
+                    </Motion.article>
                   ))}
-                </motion.div>
+                </Motion.div>
 
-                <motion.div
+                <Motion.div
                   variants={fadeUp}
                   className="grid min-h-0 grid-rows-[auto_1fr] rounded-2xl border border-slate-200 bg-white p-2 shadow-sm"
                 >
@@ -837,7 +984,7 @@ function App() {
                       Assessment snapshots
                     </p>
                   </div>
-                  <div className="grid h-full min-h-0 grid-cols-2 gap-1.5 auto-rows-fr">
+                  <div className="grid h-full min-h-0 grid-cols-4 gap-1.5 auto-rows-fr">
                     <MiniTrendCard
                       title="BMI Trend"
                       data={executiveHealthTrends.bmi}
@@ -868,28 +1015,28 @@ function App() {
                       changeLabel="Up"
                     />
                   </div>
-                </motion.div>
+                </Motion.div>
 
-                <motion.div
+                <Motion.div
                   variants={fadeUp}
                   className="rounded-2xl border border-slate-200 bg-white/90 px-3 py-0.5 text-[10px] leading-relaxed text-slate-600"
                 >
                   {executiveSummary.leadership}
-                </motion.div>
-              </motion.section>
+                </Motion.div>
+              </Motion.section>
             )}
 
             {currentPage === 1 && (
-              <motion.section
+              <Motion.section
                 key="page-1"
-                variants={pageTransition}
-                initial="initial"
+                variants={pageVariants}
+                initial={isExportingPdf ? false : "initial"}
                 animate="animate"
-                exit="exit"
+                exit={isExportingPdf ? undefined : "exit"}
                 className="grid h-full min-h-0 gap-3 lg:grid-cols-[1.2fr_1fr]"
               >
                 <div className="grid min-h-0 grid-rows-[auto_auto_1fr] gap-3">
-                  <motion.div
+                  <Motion.div
                     variants={fadeUp}
                     className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"
                   >
@@ -903,9 +1050,9 @@ function App() {
                       Cleaned and deduplicated service families presented for
                       board-level clarity.
                     </p>
-                  </motion.div>
+                  </Motion.div>
 
-                  <motion.div
+                  <Motion.div
                     variants={fadeUp}
                     className="grid grid-cols-3 gap-2"
                   >
@@ -933,16 +1080,16 @@ function App() {
                         {achievements.length}
                       </p>
                     </div>
-                  </motion.div>
+                  </Motion.div>
 
-                  <motion.div
+                  <Motion.div
                     variants={stagger}
                     initial="initial"
                     animate="animate"
                     className="grid min-h-0 gap-2 sm:grid-cols-2 lg:grid-cols-3"
                   >
                     {deliveryGroups.map((group) => (
-                      <motion.article
+                      <Motion.article
                         key={group.title}
                         variants={fadeUp}
                         className="rounded-xl border border-slate-200 bg-white p-2.5 shadow-sm"
@@ -960,13 +1107,13 @@ function App() {
                             </span>
                           ))}
                         </div>
-                      </motion.article>
+                      </Motion.article>
                     ))}
-                  </motion.div>
+                  </Motion.div>
                 </div>
 
                 <div className="grid min-h-0 grid-rows-[auto_1fr] gap-3">
-                  <motion.article
+                  <Motion.article
                     variants={fadeUp}
                     className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"
                   >
@@ -991,9 +1138,9 @@ function App() {
                         </div>
                       ))}
                     </div>
-                  </motion.article>
+                  </Motion.article>
 
-                  <motion.article
+                  <Motion.article
                     variants={fadeUp}
                     className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"
                   >
@@ -1005,21 +1152,21 @@ function App() {
                       prevention, and community support pathways, with strong
                       inclusion outcomes and sustained participation.
                     </p>
-                  </motion.article>
+                  </Motion.article>
                 </div>
-              </motion.section>
+              </Motion.section>
             )}
 
             {currentPage === 2 && (
-              <motion.section
+              <Motion.section
                 key="page-2"
-                variants={pageTransition}
-                initial="initial"
+                variants={pageVariants}
+                initial={isExportingPdf ? false : "initial"}
                 animate="animate"
-                exit="exit"
+                exit={isExportingPdf ? undefined : "exit"}
                 className="grid h-full min-h-0 gap-3 lg:grid-cols-[1.25fr_1fr]"
               >
-                <motion.article
+                <Motion.article
                   variants={fadeUp}
                   className="grid min-h-0 grid-rows-[auto_1fr] gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"
                 >
@@ -1084,9 +1231,9 @@ function App() {
                       ))}
                     </div>
                   </div>
-                </motion.article>
+                </Motion.article>
 
-                <motion.article
+                <Motion.article
                   variants={fadeUp}
                   className="grid min-h-0 grid-rows-[auto_1fr] rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"
                 >
@@ -1113,8 +1260,8 @@ function App() {
                       </div>
                     ))}
                   </div>
-                </motion.article>
-              </motion.section>
+                </Motion.article>
+              </Motion.section>
             )}
           </AnimatePresence>
         </div>
@@ -1128,9 +1275,22 @@ function App() {
             <span className="ml-2 text-slate-500">
               {pages[currentPage].label}
             </span>
+            {pdfExportError && (
+              <span className="ml-2 text-[10px] font-medium text-red-600">
+                {pdfExportError}
+              </span>
+            )}
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleExportPdf}
+              disabled={isExportingPdf}
+              className="rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {isExportingPdf ? "Exporting..." : "Export PDF"}
+            </button>
             <button
               type="button"
               onClick={prevPage}
