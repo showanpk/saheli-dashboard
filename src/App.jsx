@@ -570,7 +570,7 @@ function App() {
                     <motion.article
                       key={kpi.label}
                       variants={fadeUp}
-                      className="flex min-h-[132px] flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 bg-white p-3.5 shadow-[0_8px_20px_rgba(53,40,65,0.08)]"
+                      className="flex min-h-[112px] flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 bg-white p-3 shadow-[0_8px_20px_rgba(53,40,65,0.08)]"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <p className="text-xs font-medium uppercase tracking-[0.09em] text-slate-500">
@@ -581,20 +581,20 @@ function App() {
                         </span>
                       </div>
                       <div>
-                        <p className="mt-1.5 text-2xl font-semibold leading-none text-slate-900 md:text-3xl">
+                        <p className="mt-1 text-2xl font-semibold leading-none text-slate-900 md:text-[1.75rem]">
                           <CountUp
                             value={kpi.value}
                             suffix={kpi.suffix || ""}
                             isActive={currentPage === 0}
                           />
                         </p>
-                        <p className="mt-1.5 text-[11px] text-slate-500">
+                        <p className="mt-1 text-[10px] text-slate-500">
                           {kpi.detail}
                         </p>
                       </div>
                       <svg
                         viewBox="0 0 116 36"
-                        className="mt-2 h-6 w-full"
+                        className="mt-1.5 h-5 w-full"
                         aria-hidden="true"
                       >
                         <polyline
@@ -612,7 +612,7 @@ function App() {
 
                 <motion.div
                   variants={fadeUp}
-                  className="rounded-2xl border border-slate-200 bg-white/90 p-3 text-sm text-slate-600"
+                  className="rounded-2xl border border-slate-200 bg-white/90 px-3 py-2 text-xs leading-relaxed text-slate-600"
                 >
                   {executiveSummary.leadership}
                 </motion.div>
