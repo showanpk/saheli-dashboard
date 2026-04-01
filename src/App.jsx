@@ -8,9 +8,7 @@ import photo3 from "./assets/3.png";
 const pages = [
   { id: "executive", label: "Executive Summary" },
   { id: "delivery", label: "Delivery Overview" },
-  { id: "health", label: "Health Impact" },
   { id: "case-study", label: "Case Study & Gallery" },
-  { id: "future", label: "Future Opportunity" },
 ];
 
 const executiveSummary = {
@@ -206,48 +204,6 @@ const achievements = [
   },
 ];
 
-const healthImpactMetrics = [
-  { label: "Total Participants Assessed", value: 896, tone: "pink" },
-  { label: "Total Assessments", value: 1521, tone: "purple" },
-  { label: "Average BMI", value: 31.3, tone: "amber", decimals: 1 },
-  {
-    label: "Average Weight",
-    value: 83.1,
-    tone: "slate",
-    decimals: 1,
-    unit: "kg",
-  },
-  { label: "Average BP", value: "124/82", tone: "blue" },
-  { label: "Average Heart Age", value: 61.2, tone: "purple", decimals: 1 },
-  { label: "Average HbA1c", value: 41.9, tone: "amber", decimals: 1 },
-  { label: "Average Active Days / Week", value: 2, tone: "blue" },
-  {
-    label: "Average Confidence To Join",
-    value: 7.5,
-    tone: "pink",
-    decimals: 1,
-  },
-];
-
-const healthTrendCards = [
-  { title: "BMI Trend", points: "8,22 25,23 42,21 59,20 76,18 93,17" },
-  { title: "Weight Trend", points: "8,24 25,25 42,23 59,21 76,20 93,18" },
-  {
-    title: "Blood Pressure Trend",
-    points: "8,20 25,20 42,19 59,18 76,18 93,17",
-  },
-  { title: "HbA1c Trend", points: "8,26 25,24 42,22 59,21 76,20 93,18" },
-  { title: "Wellbeing Trend", points: "8,28 25,24 42,20 59,17 76,14 93,12" },
-  { title: "Active Days Trend", points: "8,27 25,25 42,23 59,21 76,18 93,15" },
-];
-
-const healthMeaning = [
-  "Stronger prevention and early identification of long-term health risk.",
-  "Clearer understanding of cohort needs for targeted intervention.",
-  "Growing confidence to participate in regular physical activity.",
-  "Better evidence for referral conversations and funding reports.",
-];
-
 const managerCaseStudy = {
   title: "Community-led support improving mobility, confidence, and wellbeing",
   background: [
@@ -281,41 +237,7 @@ const photoGallery = [
   { src: photo3, alt: "Community activity photo 3" },
 ];
 
-const futureTracks = [
-  {
-    title: "Health Referral Expansion",
-    text: "Scale GP and NHS referral pathways to reach more residents earlier with preventative support.",
-  },
-  {
-    title: "Women and Family Activity Growth",
-    text: "Extend women-led sport and active travel opportunities into additional community venues.",
-  },
-  {
-    title: "Employment and Wellbeing Integration",
-    text: "Grow WorkWell-style support to connect wellbeing progress with skills and employability outcomes.",
-  },
-  {
-    title: "Evidence and Funding Readiness",
-    text: "Use impact storytelling and outcomes data to strengthen multi-year funding partnerships.",
-  },
-];
-
-const sponsorshipCallout = {
-  title: "Future Partnership Opportunity",
-  value: "GBP 250k",
-  detail:
-    "Target blended investment to scale inclusive delivery over the next 24 months.",
-};
-
 const sparklinePoints = "8,28 28,22 48,26 68,18 88,24 108,12";
-
-const healthToneStyles = {
-  pink: "border-[#f8c5de] bg-[#fff5fb]",
-  purple: "border-[#d8b8ea] bg-[#faf6ff]",
-  blue: "border-[#bfddee] bg-[#f4fbff]",
-  amber: "border-[#f6dca7] bg-[#fffaf0]",
-  slate: "border-slate-200 bg-white",
-};
 
 function CountUp({
   value,
@@ -818,112 +740,6 @@ function App() {
                 initial="initial"
                 animate="animate"
                 exit="exit"
-                className="grid h-full min-h-0 grid-rows-[auto_1fr_auto] gap-3"
-              >
-                <motion.div
-                  variants={fadeUp}
-                  className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"
-                >
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#0d679a]">
-                    Page 3
-                  </p>
-                  <h2 className="mt-1 text-2xl font-semibold text-slate-900">
-                    Health Impact
-                  </h2>
-                  <p className="mt-1 text-xs text-slate-600">
-                    Measured health indicators and trend evidence from the CRM
-                    assessment cohort.
-                  </p>
-                </motion.div>
-
-                <motion.div
-                  variants={stagger}
-                  initial="initial"
-                  animate="animate"
-                  className="grid min-h-0 gap-2 md:grid-cols-3"
-                >
-                  {healthImpactMetrics.map((metric) => (
-                    <motion.article
-                      key={metric.label}
-                      variants={fadeUp}
-                      className={`rounded-xl border p-2.5 shadow-sm ${healthToneStyles[metric.tone]}`}
-                    >
-                      <p className="text-[10px] uppercase tracking-[0.07em] text-slate-500">
-                        Health Metric
-                      </p>
-                      <h3 className="mt-0.5 text-[11px] font-medium leading-snug text-slate-700">
-                        {metric.label}
-                      </h3>
-                      <p className="mt-1.5 text-xl font-semibold text-slate-900">
-                        {typeof metric.value === "number" ? (
-                          <CountUp
-                            value={metric.value}
-                            decimals={metric.decimals || 0}
-                            suffix={metric.unit ? ` ${metric.unit}` : ""}
-                            isActive={currentPage === 2}
-                          />
-                        ) : (
-                          metric.value
-                        )}
-                      </p>
-                    </motion.article>
-                  ))}
-                </motion.div>
-
-                <motion.div
-                  variants={fadeUp}
-                  className="grid gap-2.5 rounded-2xl border border-[#f59e0b]/35 bg-gradient-to-r from-[#fff8ec] via-[#fff3fa] to-[#eef7ff] p-3 lg:grid-cols-[1.4fr_1fr]"
-                >
-                  <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                    {healthTrendCards.map((trend) => (
-                      <div
-                        key={trend.title}
-                        className="rounded-xl border border-slate-200 bg-white p-2.5"
-                      >
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-slate-500">
-                          {trend.title}
-                        </p>
-                        <svg
-                          viewBox="0 0 104 30"
-                          className="mt-1.5 h-6 w-full"
-                          aria-hidden="true"
-                        >
-                          <polyline
-                            fill="none"
-                            stroke="#0d679a"
-                            strokeWidth="1.9"
-                            strokeLinecap="round"
-                            points={trend.points}
-                          />
-                          <circle cx="93" cy="17" r="2.2" fill="#e6007e" />
-                        </svg>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="rounded-xl bg-slate-900 p-3 text-white shadow-inner">
-                    <p className="text-[10px] uppercase tracking-[0.14em] text-white/65">
-                      What this means
-                    </p>
-                    <ul className="mt-1.5 space-y-1 text-[11px] leading-relaxed text-white/85">
-                      {healthMeaning.map((line) => (
-                        <li key={line} className="flex gap-2">
-                          <span className="mt-1 h-1.5 w-1.5 rounded-full bg-[#f59e0b]" />
-                          <span>{line}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </motion.div>
-              </motion.section>
-            )}
-
-            {currentPage === 3 && (
-              <motion.section
-                key="page-3"
-                variants={pageTransition}
-                initial="initial"
-                animate="animate"
-                exit="exit"
                 className="grid h-full min-h-0 gap-3 lg:grid-cols-[1.25fr_1fr]"
               >
                 <motion.article
@@ -932,7 +748,7 @@ function App() {
                 >
                   <div>
                     <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#0d679a]">
-                      Page 4
+                      Page 3
                     </p>
                     <h2 className="mt-1 text-2xl font-semibold text-slate-900">
                       Case Study and Photo Story
@@ -1015,87 +831,6 @@ function App() {
                     ))}
                   </div>
                 </motion.article>
-              </motion.section>
-            )}
-
-            {currentPage === 4 && (
-              <motion.section
-                key="page-4"
-                variants={pageTransition}
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                className="grid h-full min-h-0 grid-rows-[auto_1fr_auto] gap-3"
-              >
-                <motion.div
-                  variants={fadeUp}
-                  className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"
-                >
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#0d679a]">
-                    Page 5
-                  </p>
-                  <h2 className="mt-1 text-2xl font-semibold text-slate-900">
-                    Future Opportunity
-                  </h2>
-                  <p className="mt-1 text-xs text-slate-600">
-                    Closing view focused on growth tracks, funding readiness,
-                    and partnership expansion.
-                  </p>
-                </motion.div>
-
-                <motion.div
-                  variants={stagger}
-                  initial="initial"
-                  animate="animate"
-                  className="grid min-h-0 gap-2.5 md:grid-cols-2"
-                >
-                  {futureTracks.map((opportunity) => (
-                    <motion.article
-                      key={opportunity.title}
-                      variants={fadeUp}
-                      className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm"
-                    >
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#e6007e]">
-                        Growth Track
-                      </p>
-                      <h3 className="mt-1 text-base font-semibold text-slate-900">
-                        {opportunity.title}
-                      </h3>
-                      <p className="mt-1 text-xs leading-relaxed text-slate-600">
-                        {opportunity.text}
-                      </p>
-                    </motion.article>
-                  ))}
-                </motion.div>
-
-                <motion.div
-                  variants={fadeUp}
-                  className="grid gap-2.5 rounded-2xl border border-[#f59e0b]/35 bg-gradient-to-r from-[#fff8ec] via-[#fff3fa] to-[#eef7ff] p-3 md:grid-cols-[1.3fr_1fr]"
-                >
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.13em] text-[#702283]">
-                      Funding and Partnership
-                    </p>
-                    <h3 className="mt-1 text-lg font-semibold text-slate-900">
-                      {sponsorshipCallout.title}
-                    </h3>
-                    <p className="mt-1 text-xs leading-relaxed text-slate-700">
-                      {sponsorshipCallout.detail}
-                    </p>
-                  </div>
-                  <div className="rounded-xl bg-slate-900 p-3 text-white shadow-inner">
-                    <p className="text-[10px] uppercase tracking-[0.13em] text-white/65">
-                      Indicative Ask
-                    </p>
-                    <p className="mt-1 text-3xl font-semibold text-[#f59e0b]">
-                      {sponsorshipCallout.value}
-                    </p>
-                    <p className="mt-1 text-[11px] text-white/80">
-                      Backing this next phase will widen reach, deepen health
-                      outcomes, and strengthen community resilience.
-                    </p>
-                  </div>
-                </motion.div>
               </motion.section>
             )}
           </AnimatePresence>
