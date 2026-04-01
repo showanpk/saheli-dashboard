@@ -353,46 +353,65 @@ function buildTrendPoints(data, width, height, padding) {
 
 function MiniTrendCard({ title, data, stroke, fill, unit = "", changeLabel }) {
   const width = 176;
-  const height = 62;
-  const padding = 8;
+  const height = 78;
+  const padding = 9;
   const linePoints = useMemo(
     () => buildTrendPoints(data, width, height, padding),
     [data],
   );
   const points = linePoints.split(" ");
+  const pointCoords = points.map((point) => {
+    const [x, y] = point.split(",").map(Number);
+    return { x, y };
+  });
+  const lastPoint = pointCoords[pointCoords.length - 1];
   const firstX = points[0]?.split(",")[0] || padding;
   const lastX = points[points.length - 1]?.split(",")[0] || width - padding;
   const areaPath = `${linePoints} ${lastX},${height - padding} ${firstX},${height - padding}`;
+  const latestValue = `${data[data.length - 1]}${unit}`;
 
   return (
-    <article className="rounded-xl border border-slate-200 bg-white p-2 shadow-sm">
+    <article className="min-h-[124px] rounded-xl border border-slate-200 bg-white p-2.5 shadow-sm">
       <div className="flex items-start justify-between gap-2">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-500">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-600">
           {title}
         </p>
-        <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[9px] font-medium text-slate-600">
+        <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[9px] font-semibold text-slate-700">
           {changeLabel}
         </span>
       </div>
       <svg
         viewBox={`0 0 ${width} ${height}`}
-        className="mt-1.5 h-12 w-full"
+        className="mt-1.5 h-16 w-full"
         aria-hidden="true"
       >
+        <line
+          x1={padding}
+          y1={height - padding}
+          x2={width - padding}
+          y2={height - padding}
+          stroke="#e2e8f0"
+          strokeWidth="1"
+        />
         <path d={`M ${areaPath} Z`} fill={fill} />
         <polyline
           points={linePoints}
           fill="none"
           stroke={stroke}
-          strokeWidth="2"
+          strokeWidth="3"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
+        {lastPoint && (
+          <circle cx={lastPoint.x} cy={lastPoint.y} r="2.9" fill={stroke} />
+        )}
       </svg>
-      <p className="mt-1 text-[10px] text-slate-500">
-        Latest: {data[data.length - 1]}
-        {unit}
-      </p>
+      <div className="mt-1.5 flex items-center justify-between text-[10px]">
+        <span className="font-medium text-slate-500">Latest reading</span>
+        <span className="rounded-full bg-slate-100 px-2 py-0.5 font-semibold text-slate-700">
+          {latestValue}
+        </span>
+      </div>
     </article>
   );
 }
@@ -405,8 +424,8 @@ function DualLineTrendCard({
   diastolicStroke,
 }) {
   const width = 176;
-  const height = 62;
-  const padding = 8;
+  const height = 78;
+  const padding = 9;
   const combined = [...systolic, ...diastolic];
   const min = Math.min(...combined);
   const max = Math.max(...combined);
@@ -425,48 +444,68 @@ function DualLineTrendCard({
 
   const systolicPoints = useMemo(() => toPoints(systolic), [systolic]);
   const diastolicPoints = useMemo(() => toPoints(diastolic), [diastolic]);
+  const systolicPointList = systolicPoints.split(" ");
+  const diastolicPointList = diastolicPoints.split(" ");
+  const systolicFirstX = systolicPointList[0]?.split(",")[0] || padding;
+  const systolicLastX =
+    systolicPointList[systolicPointList.length - 1]?.split(",")[0] ||
+    width - padding;
+  const diastolicFirstX = diastolicPointList[0]?.split(",")[0] || padding;
+  const diastolicLastX =
+    diastolicPointList[diastolicPointList.length - 1]?.split(",")[0] ||
+    width - padding;
+  const systolicAreaPath = `${systolicPoints} ${systolicLastX},${height - padding} ${systolicFirstX},${height - padding}`;
+  const diastolicAreaPath = `${diastolicPoints} ${diastolicLastX},${height - padding} ${diastolicFirstX},${height - padding}`;
+  const systolicLast = systolicPoints.split(" ").pop()?.split(",").map(Number);
+  const diastolicLast = diastolicPoints
+    .split(" ")
+    .pop()
+    ?.split(",")
+    .map(Number);
 
   return (
-    <article className="rounded-xl border border-slate-200 bg-white p-2 shadow-sm">
+    <article className="min-h-[132px] rounded-xl border border-slate-200 bg-white p-2.5 shadow-sm">
       <div className="flex items-start justify-between gap-2">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-500">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-600">
           {title}
         </p>
-        <div className="flex items-center gap-1 text-[9px] text-slate-500">
-          <span className="inline-flex items-center gap-1">
+        <div className="flex items-center gap-1.5 text-[9px] text-slate-700">
+          <span className="inline-flex items-center gap-1 rounded-full bg-[#fff1f5] px-1.5 py-0.5">
             <span
               className="h-1.5 w-1.5 rounded-full"
               style={{ backgroundColor: systolicStroke }}
             />
-            SYS
+            Systolic
           </span>
-          <span className="inline-flex items-center gap-1">
+          <span className="inline-flex items-center gap-1 rounded-full bg-[#eff7fc] px-1.5 py-0.5">
             <span
               className="h-1.5 w-1.5 rounded-full"
               style={{ backgroundColor: diastolicStroke }}
             />
-            DIA
+            Diastolic
           </span>
         </div>
       </div>
       <svg
         viewBox={`0 0 ${width} ${height}`}
-        className="mt-1.5 h-12 w-full"
+        className="mt-1.5 h-16 w-full"
         aria-hidden="true"
       >
         <line
-          x1="8"
-          y1="31"
-          x2="168"
-          y2="31"
+          x1={padding}
+          y1={height - padding}
+          x2={width - padding}
+          y2={height - padding}
           stroke="#e2e8f0"
           strokeWidth="1"
         />
+        <path d={`M ${systolicAreaPath} Z`} fill="rgba(225, 29, 72, 0.12)" />
+        <path d={`M ${diastolicAreaPath} Z`} fill="rgba(13, 103, 154, 0.12)" />
         <polyline
           points={systolicPoints}
           fill="none"
           stroke={systolicStroke}
-          strokeWidth="2"
+          strokeWidth="2.8"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
@@ -474,15 +513,33 @@ function DualLineTrendCard({
           points={diastolicPoints}
           fill="none"
           stroke={diastolicStroke}
-          strokeWidth="2"
+          strokeWidth="2.8"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
+        {systolicLast && (
+          <circle
+            cx={systolicLast[0]}
+            cy={systolicLast[1]}
+            r="2.4"
+            fill={systolicStroke}
+          />
+        )}
+        {diastolicLast && (
+          <circle
+            cx={diastolicLast[0]}
+            cy={diastolicLast[1]}
+            r="2.4"
+            fill={diastolicStroke}
+          />
+        )}
       </svg>
-      <p className="mt-1 text-[10px] text-slate-500">
-        Latest: {systolic[systolic.length - 1]}/
-        {diastolic[diastolic.length - 1]} mmHg
-      </p>
+      <div className="mt-1.5 flex items-center justify-between text-[10px]">
+        <span className="font-medium text-slate-500">Latest reading</span>
+        <span className="rounded-full bg-slate-100 px-2 py-0.5 font-semibold text-slate-700">
+          {systolic[systolic.length - 1]}/{diastolic[diastolic.length - 1]} mmHg
+        </span>
+      </div>
     </article>
   );
 }
@@ -621,7 +678,7 @@ function App() {
                 initial="initial"
                 animate="animate"
                 exit="exit"
-                className="grid h-full min-h-0 grid-rows-[auto_auto_auto_auto_1fr_auto] gap-2.5"
+                className="grid h-full min-h-0 grid-rows-[auto_auto_auto_auto_1fr_auto] gap-2"
               >
                 <motion.div
                   variants={fadeUp}
@@ -728,7 +785,7 @@ function App() {
                     <motion.article
                       key={kpi.label}
                       variants={fadeUp}
-                      className="flex min-h-[92px] flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-[0_8px_20px_rgba(53,40,65,0.08)]"
+                      className="flex min-h-[84px] flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-[0_8px_20px_rgba(53,40,65,0.08)]"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-slate-500">
@@ -780,19 +837,19 @@ function App() {
                       Assessment snapshots
                     </p>
                   </div>
-                  <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                  <div className="grid grid-cols-2 gap-2.5">
                     <MiniTrendCard
                       title="BMI Trend"
                       data={executiveHealthTrends.bmi}
                       stroke="#e11d48"
-                      fill="rgba(244, 63, 94, 0.14)"
+                      fill="rgba(244, 63, 94, 0.2)"
                       changeLabel="Improving"
                     />
                     <MiniTrendCard
                       title="Weight Trend"
                       data={executiveHealthTrends.weight}
                       stroke="#0d679a"
-                      fill="rgba(13, 103, 154, 0.14)"
+                      fill="rgba(13, 103, 154, 0.2)"
                       unit=" kg"
                       changeLabel="Down"
                     />
@@ -807,7 +864,7 @@ function App() {
                       title="Wellbeing Trend"
                       data={executiveHealthTrends.wellbeing}
                       stroke="#e6007e"
-                      fill="rgba(230, 0, 126, 0.14)"
+                      fill="rgba(230, 0, 126, 0.2)"
                       changeLabel="Up"
                     />
                   </div>
@@ -815,7 +872,7 @@ function App() {
 
                 <motion.div
                   variants={fadeUp}
-                  className="rounded-2xl border border-slate-200 bg-white/90 px-3 py-1.5 text-[11px] leading-relaxed text-slate-600"
+                  className="rounded-2xl border border-slate-200 bg-white/90 px-3 py-1 text-[10.5px] leading-relaxed text-slate-600"
                 >
                   {executiveSummary.leadership}
                 </motion.div>
