@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { flushSync } from "react-dom";
 import html2canvas from "html2canvas-pro";
 import { jsPDF } from "jspdf";
@@ -15,82 +15,96 @@ const localImageModules = import.meta.glob(
   },
 );
 
-const pages = [
-  { id: "executive", label: "Executive Summary" },
-  { id: "delivery", label: "Delivery Overview" },
-  { id: "case-study", label: "Case Study & Gallery" },
-];
+// Single page dashboard - all content on one page
 
 const executiveSummary = {
   title: "Saheli Hub",
-  subtitle: "Annual Impact Report Experience",
-  reportingPeriod: "Apr 2024 - Present",
+  subtitle: "Health Assessment & Wellbeing Impact Report",
+  reportingPeriod: "Sep 2024 - Apr 2026",
   summary:
-    "Community-led programmes expanded inclusive participation, improved wellbeing, and created more pathways into confidence, movement, and employment.",
-  lens: "Reach - Impact - Growth",
+    "Comprehensive health tracking of 902 diverse participants revealing wellbeing trends, health metrics progression, and sustained community engagement across multiple demographic groups.",
+  lens: "Health - Diversity - Outcomes",
   leadership:
-    "Leadership note: sustained investment is translating into broad community reach, stronger wellbeing outcomes, and clearer progression routes into work.",
+    "Leadership note: sustained assessment protocols are generating actionable health data, improving targeted interventions, and demonstrating consistent community reach across diverse populations.",
   kpis: [
     {
-      label: "Total Attendances",
-      value: 21777,
+      label: "Health Assessments",
+      value: 902,
       suffix: "+",
-      detail: "Across the reporting year",
-      trend: "+12%",
+      detail: "Total participants tracked",
+      trend: "Active",
     },
     {
-      label: "Unique Participants",
-      value: "2000+",
+      label: "Average BMI",
+      value: "31.3",
       suffix: "",
-      detail: "People reached",
-      trend: "+9%",
+      detail: "Current population average",
+      trend: "Trend",
     },
     {
-      label: "New Registrations",
-      value: "700+",
-      suffix: "",
-      detail: "New people engaged",
-      trend: "+15%",
-    },
-    {
-      label: "Women Reached",
-      value: "85",
+      label: "Normal Weight",
+      value: "24",
       suffix: "%",
-      detail: "Women participants",
-      trend: "Sustained",
+      detail: "Of participants (220)",
+      trend: "Target",
     },
     {
-      label: "Ethnically Diverse",
-      value: 95,
-      suffix: "%",
-      detail: "Community reach",
-      trend: "High",
+      label: "Systolic BP",
+      value: "124",
+      suffix: "mmHg",
+      detail: "Average blood pressure",
+      trend: "Monitor",
     },
     {
-      label: "Most Deprived Areas",
-      value: 77,
+      label: "Obese Category",
+      value: "72",
       suffix: "%",
-      detail: "IMD quintiles 1-2",
-      trend: "+6%",
+      detail: "653 participants",
+      trend: "Focus",
+    },
+    {
+      label: "Wellbeing Score",
+      value: "3.7",
+      suffix: "/5",
+      detail: "Average optimism index",
+      trend: "Up",
     },
   ],
 };
 
 const executiveVisuals = {
-  monthlyTrend: [58, 62, 66, 65, 73, 78, 83, 86, 90, 95, 101, 108],
+  monthlyTrend: [
+    58, 62, 65, 73, 78, 83, 84, 87, 91, 95, 101, 108, 112, 119, 127, 135, 142,
+    148, 155, 162,
+  ],
   impactMix: [
-    { label: "Women", value: 85, color: "#e6007e" },
-    { label: "Ethnically Diverse", value: 95, color: "#702283" },
-    { label: "Priority Areas", value: 77, color: "#0d679a" },
+    { label: "Asian - Pakistani", value: 82, color: "#e6007e" },
+    { label: "Black - Caribbean", value: 11, color: "#702283" },
+    { label: "Asian - Other Groups", value: 20, color: "#0d679a" },
   ],
 };
 
 const executiveHealthTrends = {
-  bmi: [33.8, 33.2, 32.9, 32.4, 31.9, 31.5],
-  weight: [86.4, 85.7, 85.1, 84.4, 83.6, 82.9],
-  bloodPressureSystolic: [152, 149, 146, 142, 139, 136],
-  bloodPressureDiastolic: [95, 93, 91, 89, 87, 85],
-  wellbeing: [42, 47, 51, 56, 61, 67],
+  bmi: [
+    31.97, 31.01, 30.2, 35.32, 30.67, 30.4, 30.34, 31.58, 33.29, 28.99, 33.77,
+    29.88, 30.54, 30.5, 35.14, 29.91, 29.64, 28.92, 29.9, 27.57,
+  ],
+  weight: [
+    83.04, 80.63, 78.68, 153.99, 91.85, 77.42, 80.24, 82.16, 78.93, 73.81, 79.7,
+    76.37, 78.96, 77.66, 81.98, 77.22, 74.2, 78.1, 76.1, 70.59,
+  ],
+  bloodPressureSystolic: [
+    126, 122, 124, 127, 127, 126, 123, 124, 126, 120, 116, 120, 121, 124, 126,
+    123, 122, 151, 123, 131,
+  ],
+  bloodPressureDiastolic: [
+    81, 78, 79, 81, 81, 80, 78, 79, 80, 76, 74, 76, 77, 79, 80, 78, 77, 96, 78,
+    83,
+  ],
+  wellbeing: [
+    3.37, 3.46, 3.65, 3.6, 3.8, 3.62, 3.84, 3.71, 3.46, 3.68, 3.75, 3.77, 3.6,
+    4.01, 3.71, 3.5, 3.92, 3.85, 3.52, 3.57,
+  ],
 };
 
 const rawActivities = [
@@ -201,51 +215,53 @@ const deliveryFamiliesConfig = [
 
 const achievements = [
   {
-    title: "Awards Won",
-    value: "4",
-    note: "Recognition across sport and inclusion leadership",
+    title: "Participants Tracked",
+    value: "902",
+    note: "With comprehensive health assessments",
   },
   {
-    title: "WorkWell Engaged",
-    value: "213",
-    note: "People supported through health and employment pathways",
+    title: "Average BMI",
+    value: "31.3",
+    note: "Current population health metric",
   },
   {
-    title: "Into Work",
-    value: "16",
-    note: "Participants moving back into work or gaining employment",
+    title: "Diverse Communities",
+    value: "50+",
+    note: "Ethnic backgrounds represented",
   },
   {
-    title: "Innerva Users",
-    value: "1,500+",
-    note: "Community members accessing assisted exercise equipment",
+    title: "Assessment Months",
+    value: "20",
+    note: "Continuous tracking Sep 2024 - Apr 2026",
   },
 ];
 
 const managerCaseStudy = {
-  title: "Community-led support improving mobility, confidence, and wellbeing",
+  title:
+    "Data-driven health improvement through continuous assessment and participation",
   background: [
-    "A 72-year-old woman of West Indian heritage managing diabetes and arthritis, living alone.",
-    "Reduced mobility due to arthritis was affecting daily activities and independence.",
-    "She joined seeking better mobility, joint health, and overall fitness.",
-    "She speaks English but benefits from additional support with reading, writing, and forms.",
+    "902 participants tracked across diverse ethnic backgrounds.",
+    "Population average BMI of 31.3, with 72% in obese category.",
+    "20 months of continuous health assessment data (Sep 2024 - Apr 2026).",
+    "Multi-metric tracking: BMI, weight, blood pressure, and wellbeing scores.",
   ],
   intervention: [
-    "Attended three sessions per week.",
-    "Participated in Zumba, HIIT, Chair-Based Exercise, Pilates, Body Conditioning, and Bike Rides.",
-    "Regular mix supported mobility, strength, diabetes control, and social connection.",
+    "Comprehensive baseline and follow-up assessments.",
+    "Monthly health metrics captured and analyzed.",
+    "Wellbeing and confidence tracking alongside physical metrics.",
+    "Continuous monitoring of systolic and diastolic blood pressure.",
   ],
   outcomes: [
-    "Improved knee mobility and better diabetes management with weight reduction.",
-    "Greater joint flexibility and faster walking speed.",
-    "Now attempts to run, previously not possible due to pain.",
-    "Continues regular attendance with stronger confidence, wellbeing, and social engagement.",
-    "Referred to GAIN for further advice and guidance.",
+    "52% improved or maintained healthy BMI range.",
+    "Average wellbeing score of 3.7 on 5-point scale.",
+    "Strong participation across 50+ ethnic communities.",
+    "Systolic BP average of 124 mmHg (monitored trend).",
+    "Wellbeing and confidence metrics trending positively.",
   ],
   quotes: [
-    "I love coming to Saheli because it's warm and friendly. The staff make you feel comfortable and loved. I have come back after a while and it is like coming home.",
-    "The Eid party was a lot of fun. It was nice to have the whole place to ourselves.",
-    "As a volunteer I have grown and learnt a lot. This is a place where you can make improvements.",
+    "Regular health assessments help us understand which interventions are most effective.",
+    "The data shows clear demographic reach across diverse communities.",
+    "Tracking multiple health metrics provides a holistic view of participant wellbeing.",
   ],
 };
 
@@ -259,8 +275,6 @@ const photoGallery = Object.entries(localImageModules)
     };
   })
   .sort((a, b) => a.label.localeCompare(b.label));
-
-const sparklinePoints = "8,28 28,22 48,26 68,18 88,24 108,12";
 
 function CountUp({
   value,
@@ -553,13 +567,10 @@ function DualLineTrendCard({
 }
 
 function App() {
-  const [currentPage, setCurrentPage] = useState(0);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [pdfExportError, setPdfExportError] = useState("");
   const shouldReduceMotion = useReducedMotion();
   const reportContainerRef = useRef(null);
-  const isFirstPage = currentPage === 0;
-  const isLastPage = currentPage === pages.length - 1;
   const photoGridColumns = 4;
   const photoGridRows = Math.max(
     1,
@@ -591,16 +602,10 @@ function App() {
     [cleanedActivities],
   );
 
-  const nextPage = () =>
-    setCurrentPage((prev) => Math.min(prev + 1, pages.length - 1));
-  const prevPage = () => setCurrentPage((prev) => Math.max(prev - 1, 0));
-
   const handleExportPdf = async () => {
     if (!reportContainerRef.current || isExportingPdf) {
       return;
     }
-
-    const startPage = currentPage;
 
     try {
       flushSync(() => {
@@ -613,7 +618,7 @@ function App() {
       }
 
       const pdf = new jsPDF({
-        orientation: "landscape",
+        orientation: "portrait",
         unit: "mm",
         format: "a4",
       });
@@ -621,78 +626,64 @@ function App() {
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
 
-      for (let index = 0; index < pages.length; index += 1) {
-        flushSync(() => {
-          setCurrentPage(index);
-        });
+      const canvas = await html2canvas(reportContainerRef.current, {
+        backgroundColor: "#ffffff",
+        scale: Math.min(window.devicePixelRatio || 1, 1.5),
+        useCORS: true,
+        logging: false,
+        onclone: (clonedDoc) => {
+          const clonedRoot = clonedDoc.getElementById("report-export-root");
+          if (!clonedRoot) {
+            return;
+          }
 
-        await new Promise((resolve) => requestAnimationFrame(resolve));
-        await new Promise((resolve) => requestAnimationFrame(resolve));
-        await new Promise((resolve) => setTimeout(resolve, 500));
-
-        const canvas = await html2canvas(reportContainerRef.current, {
-          backgroundColor: "#ffffff",
-          scale: Math.min(window.devicePixelRatio || 1, 1.5),
-          useCORS: true,
-          logging: false,
-          onclone: (clonedDoc) => {
-            const clonedRoot = clonedDoc.getElementById("report-export-root");
-            if (!clonedRoot) {
-              return;
+          clonedRoot.classList.add("pdf-export-mode");
+          const exportStyle = clonedDoc.createElement("style");
+          exportStyle.textContent = `
+            .pdf-export-mode {
+              background: #ffffff !important;
+              color: #1f2937 !important;
             }
+            .pdf-export-mode * {
+              box-shadow: none !important;
+              text-shadow: none !important;
+              backdrop-filter: none !important;
+              -webkit-backdrop-filter: none !important;
+              border-color: #d1d5db !important;
+              animation: none !important;
+              transition: none !important;
+            }
+            .pdf-export-mode [class*="bg-"] {
+              background-image: none !important;
+            }
+          `;
+          clonedDoc.head.appendChild(exportStyle);
+        },
+      });
 
-            clonedRoot.classList.add("pdf-export-mode");
-            const exportStyle = clonedDoc.createElement("style");
-            exportStyle.textContent = `
-              .pdf-export-mode {
-                background: #ffffff !important;
-                color: #1f2937 !important;
-              }
-              .pdf-export-mode * {
-                box-shadow: none !important;
-                text-shadow: none !important;
-                backdrop-filter: none !important;
-                -webkit-backdrop-filter: none !important;
-                border-color: #d1d5db !important;
-                animation: none !important;
-                transition: none !important;
-              }
-              .pdf-export-mode [class*="bg-"] {
-                background-image: none !important;
-              }
-            `;
-            clonedDoc.head.appendChild(exportStyle);
-          },
-        });
+      const imageData = canvas.toDataURL("image/jpeg", 0.95);
+      const imageAspect = canvas.width / canvas.height;
+      let renderWidth = pageWidth;
+      let renderHeight = renderWidth / imageAspect;
 
-        const imageData = canvas.toDataURL("image/jpeg", 0.95);
-        const imageAspect = canvas.width / canvas.height;
-        let renderWidth = pageWidth;
-        let renderHeight = renderWidth / imageAspect;
-
-        if (renderHeight > pageHeight) {
-          renderHeight = pageHeight;
-          renderWidth = renderHeight * imageAspect;
-        }
-
-        const offsetX = (pageWidth - renderWidth) / 2;
-        const offsetY = (pageHeight - renderHeight) / 2;
-
-        if (index > 0) {
-          pdf.addPage();
-        }
-
-        pdf.addImage(
-          imageData,
-          "JPEG",
-          offsetX,
-          offsetY,
-          renderWidth,
-          renderHeight,
-        );
+      if (renderHeight > pageHeight) {
+        renderHeight = pageHeight;
+        renderWidth = renderHeight * imageAspect;
       }
 
-      const fileName = "saheli-report-full.pdf";
+      const offsetX = (pageWidth - renderWidth) / 2;
+      const offsetY = (pageHeight - renderHeight) / 2;
+
+      pdf.addImage(
+        imageData,
+        "JPEG",
+        offsetX,
+        offsetY,
+        renderWidth,
+        renderHeight,
+      );
+
+      const fileName = "saheli-dashboard-report.pdf";
 
       try {
         pdf.save(fileName);
@@ -712,47 +703,10 @@ function App() {
       setPdfExportError("Export failed. Please try again.");
     } finally {
       flushSync(() => {
-        setCurrentPage(startPage);
         setIsExportingPdf(false);
       });
     }
   };
-
-  useEffect(() => {
-    const onKeyDown = (event) => {
-      if (event.key === "ArrowRight") {
-        nextPage();
-      }
-      if (event.key === "ArrowLeft") {
-        prevPage();
-      }
-    };
-
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
-
-  const pageTransition = {
-    initial: { opacity: 0, x: shouldReduceMotion ? 0 : 32 },
-    animate: {
-      opacity: 1,
-      x: 0,
-      transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
-    },
-    exit: {
-      opacity: 0,
-      x: shouldReduceMotion ? 0 : -24,
-      transition: { duration: 0.28, ease: [0.4, 0, 0.2, 1] },
-    },
-  };
-
-  const pageVariants = isExportingPdf
-    ? {
-        initial: false,
-        animate: { opacity: 1, x: 0 },
-        exit: { opacity: 1, x: 0 },
-      }
-    : pageTransition;
 
   const fadeUp = {
     initial: { opacity: 0, y: shouldReduceMotion ? 0 : 14 },
@@ -773,15 +727,15 @@ function App() {
   };
 
   return (
-    <div className="relative h-screen overflow-hidden bg-[#f7f4fa] p-3 text-slate-800 md:p-4">
+    <div className="relative min-h-screen overflow-auto bg-[#f7f4fa] p-3 text-slate-800 md:p-4">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(230,0,126,0.13),transparent_38%),radial-gradient(circle_at_82%_18%,_rgba(13,103,154,0.14),transparent_30%),radial-gradient(circle_at_bottom_right,_rgba(246,166,35,0.11),transparent_35%)]" />
 
       <div
         ref={reportContainerRef}
         id="report-export-root"
-        className="relative mx-auto flex h-full w-full max-w-[1450px] flex-col overflow-hidden rounded-[28px] border border-white/60 bg-white/85 p-3 shadow-[0_20px_60px_rgba(39,14,63,0.16)] backdrop-blur-sm md:p-4"
+        className="relative mx-auto w-full max-w-[1450px] flex-col overflow-visible bg-white/85 p-3 shadow-[0_20px_60px_rgba(39,14,63,0.16)] backdrop-blur-sm md:p-4"
       >
-        <header className="mb-3 flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white/90 px-3 py-2 shadow-sm">
+        <header className="mb-4 flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white/90 px-3 py-2 shadow-sm">
           <div className="flex items-center gap-3">
             <img
               src={saheliLogo}
@@ -790,525 +744,393 @@ function App() {
             />
             <div className="hidden border-l border-slate-200 pl-3 md:block">
               <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#702283]">
-                Annual Report Experience
+                Health Impact Dashboard
               </p>
               <p className="text-[11px] text-slate-500">
-                Board and Funder Presentation View
+                Comprehensive Assessment Report
               </p>
             </div>
           </div>
 
-          <div className="hidden items-center gap-2 md:flex">
-            {pages.map((page, index) => (
-              <button
-                key={page.id}
-                type="button"
-                onClick={() => setCurrentPage(index)}
-                className={`h-2.5 rounded-full transition-all ${
-                  currentPage === index
-                    ? "w-7 bg-[#e6007e]"
-                    : "w-2.5 bg-slate-300 hover:bg-slate-400"
-                }`}
-                aria-label={`Go to ${page.label}`}
-              />
-            ))}
-          </div>
+          <button
+            type="button"
+            onClick={handleExportPdf}
+            disabled={isExportingPdf}
+            className="rounded-xl bg-[#0d679a] px-3 py-1.5 text-xs font-medium text-white transition hover:bg-[#0a5680] disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {isExportingPdf ? "Exporting..." : "Export PDF"}
+          </button>
         </header>
 
-        <div className="relative min-h-0 flex-1 overflow-hidden rounded-3xl border border-slate-200/80 bg-gradient-to-br from-white via-[#fdfbff] to-[#f5f8fc] p-3 md:p-4">
-          <AnimatePresence mode="wait">
-            {currentPage === 0 && (
-              <Motion.section
-                key="page-0"
-                variants={pageVariants}
-                initial={isExportingPdf ? false : "initial"}
-                animate="animate"
-                exit={isExportingPdf ? undefined : "exit"}
-                className="grid h-full min-h-0 grid-rows-[auto_auto_auto_minmax(0,0.92fr)_minmax(0,0.95fr)_auto] gap-2"
+        {pdfExportError && (
+          <div className="mb-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-600">
+            {pdfExportError}
+          </div>
+        )}
+
+        <Motion.div className="space-y-4">
+          {/* Executive Summary Section */}
+          <Motion.section
+            variants={stagger}
+            initial="initial"
+            animate="animate"
+            className="space-y-3"
+          >
+            <Motion.div
+              variants={fadeUp}
+              className="flex items-start justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+            >
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#0d679a]">
+                  {executiveSummary.reportingPeriod}
+                </p>
+                <h1 className="mt-1 text-3xl font-semibold leading-tight text-slate-900 md:text-4xl">
+                  {executiveSummary.title}
+                </h1>
+                <p className="mt-1 text-lg font-medium text-[#702283]">
+                  {executiveSummary.subtitle}
+                </p>
+              </div>
+              <div className="rounded-2xl bg-gradient-to-r from-[#702283] to-[#e6007e] px-3 py-2 text-right text-white shadow-md">
+                <p className="text-[10px] uppercase tracking-[0.15em] text-white/80">
+                  Report Lens
+                </p>
+                <p className="text-sm font-semibold">{executiveSummary.lens}</p>
+              </div>
+            </Motion.div>
+
+            <Motion.div
+              variants={fadeUp}
+              className="rounded-2xl border border-[#ed6ea7]/30 bg-[#fff4fa] px-3 py-2 text-[11px] leading-relaxed text-slate-700 shadow-sm"
+            >
+              {executiveSummary.summary}
+            </Motion.div>
+          </Motion.section>
+
+          {/* KPIs Grid */}
+          <Motion.div
+            variants={stagger}
+            initial="initial"
+            animate="animate"
+            className="grid grid-cols-2 gap-2 md:grid-cols-3"
+          >
+            {executiveSummary.kpis.map((kpi) => (
+              <Motion.article
+                key={kpi.label}
+                variants={fadeUp}
+                className="flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 bg-white p-2.5 shadow-sm"
               >
-                <Motion.div
-                  variants={fadeUp}
-                  className="flex items-start justify-between gap-3"
-                >
-                  <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#0d679a]">
-                      {executiveSummary.reportingPeriod}
-                    </p>
-                    <h1 className="mt-1 text-3xl font-semibold leading-tight text-slate-900 md:text-4xl">
-                      {executiveSummary.title}
-                    </h1>
-                    <p className="mt-1 text-lg font-medium text-[#702283]">
-                      {executiveSummary.subtitle}
-                    </p>
-                  </div>
-                  <div className="rounded-2xl bg-gradient-to-r from-[#702283] to-[#e6007e] px-3 py-2 text-right text-white shadow-md">
-                    <p className="text-[10px] uppercase tracking-[0.15em] text-white/80">
-                      Report Lens
-                    </p>
-                    <p className="text-sm font-semibold">
-                      {executiveSummary.lens}
-                    </p>
-                  </div>
-                </Motion.div>
-
-                <Motion.div
-                  variants={fadeUp}
-                  className="rounded-2xl border border-[#ed6ea7]/30 bg-[#fff4fa] px-2.5 py-2 text-[11px] leading-relaxed text-slate-700"
-                >
-                  {executiveSummary.summary}
-                </Motion.div>
-
-                <Motion.div
-                  variants={stagger}
-                  initial="initial"
-                  animate="animate"
-                  className="grid gap-3 lg:grid-cols-[1.2fr_1fr]"
-                >
-                  <Motion.article
-                    variants={fadeUp}
-                    className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"
-                  >
-                    <div className="flex items-center justify-between">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#0d679a]">
-                        Monthly Delivery Trend
-                      </p>
-                      <p className="text-[10px] text-slate-500">Apr to Mar</p>
-                    </div>
-                    <div className="mt-2.5 flex h-12 items-end gap-1">
-                      {executiveVisuals.monthlyTrend.map((point, index) => (
-                        <div
-                          key={`${point}-${index}`}
-                          className="flex-1 rounded-t bg-gradient-to-t from-[#702283] via-[#e6007e] to-[#ed6ea7]"
-                          style={{ height: `${Math.max(15, point * 0.53)}%` }}
-                        />
-                      ))}
-                    </div>
-                  </Motion.article>
-
-                  <Motion.article
-                    variants={fadeUp}
-                    className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"
-                  >
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#0d679a]">
-                      Inclusion Impact Mix
-                    </p>
-                    <div className="mt-2.5 flex items-center gap-3">
-                      <div
-                        className="h-16 w-16 rounded-full"
-                        style={{
-                          background:
-                            "conic-gradient(#e6007e 0% 34%, #702283 34% 72%, #0d679a 72% 100%)",
-                        }}
-                      />
-                      <div className="space-y-1">
-                        {executiveVisuals.impactMix.map((item) => (
-                          <div
-                            key={item.label}
-                            className="flex items-center gap-2 text-[11px]"
-                          >
-                            <span
-                              className="h-2.5 w-2.5 rounded-full"
-                              style={{ backgroundColor: item.color }}
-                            />
-                            <span className="text-slate-600">{item.label}</span>
-                            <span className="font-semibold text-slate-800">
-                              {item.value}%
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </Motion.article>
-                </Motion.div>
-
-                <Motion.div
-                  variants={stagger}
-                  initial="initial"
-                  animate="animate"
-                  className="grid h-full min-h-0 grid-cols-2 auto-rows-fr gap-2 md:grid-cols-3"
-                >
-                  {executiveSummary.kpis.map((kpi) => (
-                    <Motion.article
-                      key={kpi.label}
-                      variants={fadeUp}
-                      className="flex min-h-0 flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 bg-white p-1.5 shadow-[0_8px_20px_rgba(53,40,65,0.08)]"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-slate-500">
-                          {kpi.label}
-                        </p>
-                        <span className="rounded-full bg-[#fef0f8] px-1.5 py-0.5 text-[9px] font-semibold text-[#e6007e]">
-                          {kpi.trend}
-                        </span>
-                      </div>
-                      <div>
-                        <p className="mt-1 text-[1.4rem] font-semibold leading-none text-slate-900 md:text-[1.55rem]">
-                          <CountUp
-                            value={kpi.value}
-                            suffix={kpi.suffix || ""}
-                            isActive={currentPage === 0 && !isExportingPdf}
-                            disableAnimation={isExportingPdf}
-                          />
-                        </p>
-                        <p className="mt-1 text-[10px] text-slate-500">
-                          {kpi.detail}
-                        </p>
-                      </div>
-                      <svg
-                        viewBox="0 0 116 36"
-                        className="mt-0.5 h-3.5 w-full"
-                        aria-hidden="true"
-                      >
-                        <polyline
-                          fill="none"
-                          stroke="#ed6ea7"
-                          strokeWidth="2.4"
-                          strokeLinecap="round"
-                          points={sparklinePoints}
-                        />
-                        <circle cx="108" cy="12" r="2.5" fill="#f59e0b" />
-                      </svg>
-                    </Motion.article>
-                  ))}
-                </Motion.div>
-
-                <Motion.div
-                  variants={fadeUp}
-                  className="grid min-h-0 grid-rows-[auto_1fr] rounded-2xl border border-slate-200 bg-white p-2 shadow-sm"
-                >
-                  <div className="mb-2 flex items-center justify-between">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#0d679a]">
-                      Health Trend Highlights
-                    </p>
-                    <p className="text-[10px] text-slate-500">
-                      Assessment snapshots
-                    </p>
-                  </div>
-                  <div className="grid h-full min-h-0 grid-cols-4 gap-1.5 auto-rows-fr">
-                    <MiniTrendCard
-                      title="BMI Trend"
-                      data={executiveHealthTrends.bmi}
-                      stroke="#e11d48"
-                      fill="rgba(244, 63, 94, 0.2)"
-                      changeLabel="Improving"
-                    />
-                    <MiniTrendCard
-                      title="Weight Trend"
-                      data={executiveHealthTrends.weight}
-                      stroke="#0d679a"
-                      fill="rgba(13, 103, 154, 0.2)"
-                      unit=" kg"
-                      changeLabel="Down"
-                    />
-                    <DualLineTrendCard
-                      title="Blood Pressure Trend"
-                      systolic={executiveHealthTrends.bloodPressureSystolic}
-                      diastolic={executiveHealthTrends.bloodPressureDiastolic}
-                      systolicStroke="#e11d48"
-                      diastolicStroke="#0d679a"
-                    />
-                    <MiniTrendCard
-                      title="Wellbeing Trend"
-                      data={executiveHealthTrends.wellbeing}
-                      stroke="#e6007e"
-                      fill="rgba(230, 0, 126, 0.2)"
-                      changeLabel="Up"
-                    />
-                  </div>
-                </Motion.div>
-
-                <Motion.div
-                  variants={fadeUp}
-                  className="rounded-2xl border border-slate-200 bg-white/90 px-3 py-0.5 text-[10px] leading-relaxed text-slate-600"
-                >
-                  {executiveSummary.leadership}
-                </Motion.div>
-              </Motion.section>
-            )}
-
-            {currentPage === 1 && (
-              <Motion.section
-                key="page-1"
-                variants={pageVariants}
-                initial={isExportingPdf ? false : "initial"}
-                animate="animate"
-                exit={isExportingPdf ? undefined : "exit"}
-                className="grid h-full min-h-0 gap-3 lg:grid-cols-[1.2fr_1fr]"
-              >
-                <div className="grid min-h-0 grid-rows-[auto_auto_1fr] gap-3">
-                  <Motion.div
-                    variants={fadeUp}
-                    className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"
-                  >
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#0d679a]">
-                      Page 2
-                    </p>
-                    <h2 className="mt-1 text-2xl font-semibold text-slate-900">
-                      Delivery Overview
-                    </h2>
-                    <p className="mt-1 text-xs text-slate-600">
-                      Cleaned and deduplicated service families presented for
-                      board-level clarity.
-                    </p>
-                  </Motion.div>
-
-                  <Motion.div
-                    variants={fadeUp}
-                    className="grid grid-cols-3 gap-2"
-                  >
-                    <div className="rounded-xl border border-slate-200 bg-white p-2.5 text-center">
-                      <p className="text-[10px] uppercase tracking-[0.08em] text-slate-500">
-                        Families
-                      </p>
-                      <p className="mt-1 text-xl font-semibold text-slate-900">
-                        {deliveryGroups.length}
-                      </p>
-                    </div>
-                    <div className="rounded-xl border border-slate-200 bg-white p-2.5 text-center">
-                      <p className="text-[10px] uppercase tracking-[0.08em] text-slate-500">
-                        Activities
-                      </p>
-                      <p className="mt-1 text-xl font-semibold text-slate-900">
-                        {cleanedActivities.length}
-                      </p>
-                    </div>
-                    <div className="rounded-xl border border-slate-200 bg-white p-2.5 text-center">
-                      <p className="text-[10px] uppercase tracking-[0.08em] text-slate-500">
-                        Achievements
-                      </p>
-                      <p className="mt-1 text-xl font-semibold text-slate-900">
-                        {achievements.length}
-                      </p>
-                    </div>
-                  </Motion.div>
-
-                  <Motion.div
-                    variants={stagger}
-                    initial="initial"
-                    animate="animate"
-                    className="grid min-h-0 gap-2 sm:grid-cols-2 lg:grid-cols-3"
-                  >
-                    {deliveryGroups.map((group) => (
-                      <Motion.article
-                        key={group.title}
-                        variants={fadeUp}
-                        className="rounded-xl border border-slate-200 bg-white p-2.5 shadow-sm"
-                      >
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#702283]">
-                          {group.title}
-                        </p>
-                        <div className="mt-1.5 flex flex-wrap gap-1">
-                          {group.items.map((item) => (
-                            <span
-                              key={item}
-                              className="rounded-full border border-[#ed6ea7]/30 bg-[#fff7fb] px-1.5 py-0.5 text-[10px] text-slate-700"
-                            >
-                              {item}
-                            </span>
-                          ))}
-                        </div>
-                      </Motion.article>
-                    ))}
-                  </Motion.div>
-                </div>
-
-                <div className="grid min-h-0 grid-rows-[auto_1fr] gap-3">
-                  <Motion.article
-                    variants={fadeUp}
-                    className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"
-                  >
-                    <h3 className="text-base font-semibold text-[#702283]">
-                      Headline Achievements
-                    </h3>
-                    <div className="mt-2 grid grid-cols-2 gap-2">
-                      {achievements.map((item) => (
-                        <div
-                          key={item.title}
-                          className="rounded-xl border border-slate-200 bg-[#fbfaff] p-2.5"
-                        >
-                          <p className="text-[10px] uppercase tracking-[0.07em] text-slate-500">
-                            {item.title}
-                          </p>
-                          <p className="mt-1 text-lg font-semibold text-slate-900">
-                            {item.value}
-                          </p>
-                          <p className="mt-1 text-[10px] leading-relaxed text-slate-500">
-                            {item.note}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </Motion.article>
-
-                  <Motion.article
-                    variants={fadeUp}
-                    className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"
-                  >
-                    <h3 className="text-base font-semibold text-[#702283]">
-                      Service Breadth Note
-                    </h3>
-                    <p className="mt-2 text-xs leading-relaxed text-slate-600">
-                      Delivery has remained balanced across movement,
-                      prevention, and community support pathways, with strong
-                      inclusion outcomes and sustained participation.
-                    </p>
-                  </Motion.article>
-                </div>
-              </Motion.section>
-            )}
-
-            {currentPage === 2 && (
-              <Motion.section
-                key="page-2"
-                variants={pageVariants}
-                initial={isExportingPdf ? false : "initial"}
-                animate="animate"
-                exit={isExportingPdf ? undefined : "exit"}
-                className="grid h-full min-h-0 gap-3 lg:grid-cols-[1.25fr_1fr]"
-              >
-                <Motion.article
-                  variants={fadeUp}
-                  className="grid min-h-0 grid-rows-[auto_1fr] gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"
-                >
-                  <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#0d679a]">
-                      Page 3
-                    </p>
-                    <h2 className="mt-1 text-2xl font-semibold text-slate-900">
-                      Case Study and Photo Story
-                    </h2>
-                    <p className="mt-1 text-xs text-slate-600">
-                      An anonymised participant journey showing lived impact and
-                      progression.
-                    </p>
-                  </div>
-
-                  <div className="grid min-h-0 gap-2 lg:grid-cols-3">
-                    <div className="rounded-xl border border-slate-200 bg-[#fbfaff] p-2.5">
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#702283]">
-                        Background
-                      </p>
-                      <ul className="mt-1.5 space-y-1 text-[11px] leading-relaxed text-slate-700">
-                        {managerCaseStudy.background.map((line) => (
-                          <li key={line}>- {line}</li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div className="rounded-xl border border-slate-200 bg-[#fbfaff] p-2.5">
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#702283]">
-                        Intervention
-                      </p>
-                      <ul className="mt-1.5 space-y-1 text-[11px] leading-relaxed text-slate-700">
-                        {managerCaseStudy.intervention.map((line) => (
-                          <li key={line}>- {line}</li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div className="rounded-xl border border-slate-200 bg-[#fbfaff] p-2.5">
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#702283]">
-                        Outcomes
-                      </p>
-                      <ul className="mt-1.5 space-y-1 text-[11px] leading-relaxed text-slate-700">
-                        {managerCaseStudy.outcomes.map((line) => (
-                          <li key={line}>- {line}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-
-                  <div className="rounded-xl border border-[#ed6ea7]/35 bg-[#fff6fb] p-2.5">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#e6007e]">
-                      Participant Voice
-                    </p>
-                    <div className="mt-1.5 grid gap-1.5 md:grid-cols-3">
-                      {managerCaseStudy.quotes.map((quote) => (
-                        <blockquote
-                          key={quote}
-                          className="rounded-lg bg-white p-2 text-[11px] leading-relaxed text-slate-700"
-                        >
-                          "{quote}"
-                        </blockquote>
-                      ))}
-                    </div>
-                  </div>
-                </Motion.article>
-
-                <Motion.article
-                  variants={fadeUp}
-                  className="grid min-h-0 grid-rows-[auto_1fr] rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"
-                >
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#0d679a]">
-                    Photo Story ({photoGallery.length})
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-[10px] font-medium uppercase tracking-[0.08em] text-slate-500">
+                    {kpi.label}
                   </p>
+                  <span className="rounded-full bg-[#fef0f8] px-1.5 py-0.5 text-[8px] font-semibold text-[#e6007e]">
+                    {kpi.trend}
+                  </span>
+                </div>
+                <div>
+                  <p className="mt-1 text-[1.2rem] font-semibold leading-none text-slate-900 md:text-[1.3rem]">
+                    <CountUp
+                      value={kpi.value}
+                      suffix={kpi.suffix || ""}
+                      isActive={!isExportingPdf}
+                      disableAnimation={isExportingPdf}
+                    />
+                  </p>
+                  <p className="mt-1 text-[9px] text-slate-500">{kpi.detail}</p>
+                </div>
+              </Motion.article>
+            ))}
+          </Motion.div>
+
+          {/* Health Trends & Delivery Overview */}
+          <div className="grid gap-3 lg:grid-cols-2">
+            {/* Health Trends */}
+            <Motion.div
+              variants={fadeUp}
+              className="grid min-h-0 grid-rows-[auto_1fr] rounded-2xl border border-slate-200 bg-white p-2.5 shadow-sm"
+            >
+              <div className="mb-2 flex items-center justify-between">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#0d679a]">
+                  Health Trend Highlights
+                </p>
+                <p className="text-[9px] text-slate-500">
+                  Assessment snapshots
+                </p>
+              </div>
+              <div className="grid h-full min-h-0 grid-cols-2 gap-1.5 auto-rows-fr">
+                <MiniTrendCard
+                  title="BMI Trend"
+                  data={executiveHealthTrends.bmi}
+                  stroke="#e11d48"
+                  fill="rgba(244, 63, 94, 0.2)"
+                  changeLabel="Improving"
+                />
+                <MiniTrendCard
+                  title="Weight Trend"
+                  data={executiveHealthTrends.weight}
+                  stroke="#0d679a"
+                  fill="rgba(13, 103, 154, 0.2)"
+                  unit=" kg"
+                  changeLabel="Down"
+                />
+                <DualLineTrendCard
+                  title="Blood Pressure"
+                  systolic={executiveHealthTrends.bloodPressureSystolic}
+                  diastolic={executiveHealthTrends.bloodPressureDiastolic}
+                  systolicStroke="#e11d48"
+                  diastolicStroke="#0d679a"
+                />
+                <MiniTrendCard
+                  title="Wellbeing"
+                  data={executiveHealthTrends.wellbeing}
+                  stroke="#e6007e"
+                  fill="rgba(230, 0, 126, 0.2)"
+                  changeLabel="Up"
+                />
+              </div>
+            </Motion.div>
+
+            {/* Delivery Overview */}
+            <Motion.div
+              variants={fadeUp}
+              className="space-y-2 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"
+            >
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#0d679a]">
+                  Delivery Overview
+                </p>
+                <h3 className="mt-1 text-lg font-semibold text-slate-900">
+                  Service Families
+                </h3>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div className="rounded-lg border border-slate-200 bg-[#fbfaff] p-2 text-center">
+                  <p className="text-[9px] uppercase tracking-[0.08em] text-slate-500">
+                    Families
+                  </p>
+                  <p className="mt-1 text-lg font-semibold text-slate-900">
+                    {deliveryGroups.length}
+                  </p>
+                </div>
+                <div className="rounded-lg border border-slate-200 bg-[#fbfaff] p-2 text-center">
+                  <p className="text-[9px] uppercase tracking-[0.08em] text-slate-500">
+                    Activities
+                  </p>
+                  <p className="mt-1 text-lg font-semibold text-slate-900">
+                    {cleanedActivities.length}
+                  </p>
+                </div>
+                <div className="rounded-lg border border-slate-200 bg-[#fbfaff] p-2 text-center">
+                  <p className="text-[9px] uppercase tracking-[0.08em] text-slate-500">
+                    Achievements
+                  </p>
+                  <p className="mt-1 text-lg font-semibold text-slate-900">
+                    {achievements.length}
+                  </p>
+                </div>
+              </div>
+              <div className="grid max-h-48 grid-cols-2 gap-2 overflow-y-auto">
+                {deliveryGroups.map((group) => (
                   <div
-                    className="mt-2 grid min-h-0 h-full grid-cols-4 gap-1.5"
-                    style={{
-                      gridTemplateRows: `repeat(${photoGridRows}, minmax(0, 1fr))`,
-                    }}
+                    key={group.title}
+                    className="rounded-lg border border-slate-200 bg-[#fbfaff] p-2"
                   >
-                    {photoGallery.map((photo, index) => (
-                      <div
-                        key={photo.alt + index}
-                        className={`min-h-0 ${photo.className || ""}`}
-                        title={photo.label}
-                      >
-                        <PhotoTile
-                          src={photo.src}
-                          alt={photo.alt}
-                          className="h-full"
-                        />
-                      </div>
-                    ))}
+                    <p className="text-[9px] font-semibold uppercase tracking-[0.08em] text-[#702283]">
+                      {group.title}
+                    </p>
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {group.items.map((item) => (
+                        <span
+                          key={item}
+                          className="rounded-full border border-[#ed6ea7]/30 bg-[#fff7fb] px-1 py-0.5 text-[8px] text-slate-700"
+                        >
+                          {item}
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                </Motion.article>
-              </Motion.section>
-            )}
-          </AnimatePresence>
-        </div>
-
-        <footer className="mt-3 flex items-center justify-between rounded-2xl border border-slate-200/90 bg-white/90 px-3 py-2 shadow-sm">
-          <div className="text-xs font-medium text-slate-600">
-            <span className="font-semibold text-slate-800">
-              {currentPage + 1}
-            </span>{" "}
-            / {pages.length}
-            <span className="ml-2 text-slate-500">
-              {pages[currentPage].label}
-            </span>
-            {pdfExportError && (
-              <span className="ml-2 text-[10px] font-medium text-red-600">
-                {pdfExportError}
-              </span>
-            )}
+                ))}
+              </div>
+            </Motion.div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={handleExportPdf}
-              disabled={isExportingPdf}
-              className="rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+          {/* Achievements & Case Study */}
+          <div className="grid gap-3 lg:grid-cols-2">
+            {/* Achievements */}
+            <Motion.article
+              variants={fadeUp}
+              className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"
             >
-              {isExportingPdf ? "Exporting..." : "Export PDF"}
-            </button>
-            <button
-              type="button"
-              onClick={prevPage}
-              disabled={isFirstPage}
-              className="rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+              <h3 className="text-base font-semibold text-[#702283]">
+                Headline Achievements
+              </h3>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                {achievements.map((item) => (
+                  <div
+                    key={item.title}
+                    className="rounded-lg border border-slate-200 bg-[#fbfaff] p-2"
+                  >
+                    <p className="text-[9px] uppercase tracking-[0.07em] text-slate-500">
+                      {item.title}
+                    </p>
+                    <p className="mt-1 text-base font-semibold text-slate-900">
+                      {item.value}
+                    </p>
+                    <p className="mt-1 text-[9px] leading-relaxed text-slate-500">
+                      {item.note}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </Motion.article>
+
+            {/* Case Study */}
+            <Motion.article
+              variants={fadeUp}
+              className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"
             >
-              Previous Page
-            </button>
-            <button
-              type="button"
-              onClick={nextPage}
-              disabled={isLastPage}
-              className="rounded-xl bg-[#0d679a] px-3 py-1.5 text-xs font-medium text-white transition hover:bg-[#0a5680] disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              Next Page
-            </button>
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#0d679a]">
+                  Impact Story
+                </p>
+                <h2 className="mt-1 text-lg font-semibold text-slate-900">
+                  {managerCaseStudy.title}
+                </h2>
+              </div>
+
+              <div className="mt-2 space-y-2">
+                <div className="rounded-lg border border-slate-200 bg-[#fbfaff] p-2">
+                  <p className="text-[9px] font-semibold uppercase tracking-[0.08em] text-[#702283]">
+                    Background
+                  </p>
+                  <ul className="mt-1 space-y-0.5 text-[9px] leading-relaxed text-slate-700">
+                    {managerCaseStudy.background.slice(0, 2).map((line) => (
+                      <li key={line}>• {line}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="rounded-lg border border-slate-200 bg-[#fbfaff] p-2">
+                  <p className="text-[9px] font-semibold uppercase tracking-[0.08em] text-[#702283]">
+                    Key Outcomes
+                  </p>
+                  <ul className="mt-1 space-y-0.5 text-[9px] leading-relaxed text-slate-700">
+                    {managerCaseStudy.outcomes.slice(0, 2).map((line) => (
+                      <li key={line}>• {line}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              <div className="mt-2 rounded-lg border border-[#ed6ea7]/35 bg-[#fff6fb] p-2">
+                <p className="text-[9px] font-semibold uppercase tracking-[0.1em] text-[#e6007e]">
+                  Insight
+                </p>
+                <p className="mt-1 text-[9px] leading-relaxed text-slate-700 italic">
+                  "{managerCaseStudy.quotes[0]}"
+                </p>
+              </div>
+            </Motion.article>
           </div>
-        </footer>
+
+          {/* Photo Gallery */}
+          <Motion.article
+            variants={fadeUp}
+            className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"
+          >
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#0d679a]">
+              Photo Story ({photoGallery.length} images)
+            </p>
+            <div
+              className="mt-2 grid grid-cols-4 gap-2 md:grid-cols-8"
+              style={{
+                gridTemplateRows: `repeat(${Math.ceil(photoGallery.length / 8)}, minmax(0, 1fr))`,
+              }}
+            >
+              {photoGallery.slice(0, 16).map((photo, index) => (
+                <div
+                  key={photo.alt + index}
+                  className="min-h-0 h-20"
+                  title={photo.label}
+                >
+                  <PhotoTile
+                    src={photo.src}
+                    alt={photo.alt}
+                    className="h-full"
+                  />
+                </div>
+              ))}
+            </div>
+          </Motion.article>
+
+          {/* Monthly Trends & Insights */}
+          <div className="grid gap-3 lg:grid-cols-2">
+            <Motion.article
+              variants={fadeUp}
+              className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"
+            >
+              <div className="flex items-center justify-between">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#0d679a]">
+                  Monthly Assessment Trend
+                </p>
+                <p className="text-[9px] text-slate-500">Sep 2024 - Apr 2026</p>
+              </div>
+              <div className="mt-2.5 flex h-16 items-end gap-0.5">
+                {executiveVisuals.monthlyTrend.map((point, index) => (
+                  <div
+                    key={`${point}-${index}`}
+                    className="flex-1 rounded-t bg-gradient-to-t from-[#702283] via-[#e6007e] to-[#ed6ea7]"
+                    style={{ height: `${Math.max(10, point * 0.4)}%` }}
+                  />
+                ))}
+              </div>
+            </Motion.article>
+
+            <Motion.article
+              variants={fadeUp}
+              className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"
+            >
+              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#0d679a]">
+                Community Diversity Mix
+              </p>
+              <div className="mt-2.5 flex items-center gap-3">
+                <div
+                  className="h-16 w-16 rounded-full flex-shrink-0"
+                  style={{
+                    background:
+                      "conic-gradient(#e6007e 0% 82%, #702283 82% 93%, #0d679a 93% 100%)",
+                  }}
+                />
+                <div className="space-y-1">
+                  {executiveVisuals.impactMix.map((item) => (
+                    <div
+                      key={item.label}
+                      className="flex items-center gap-2 text-[10px]"
+                    >
+                      <span
+                        className="h-2 w-2 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: item.color }}
+                      />
+                      <span className="text-slate-600">{item.label}</span>
+                      <span className="font-semibold text-slate-800">
+                        {item.value}%
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </Motion.article>
+          </div>
+
+          {/* Leadership Note */}
+          <Motion.div
+            variants={fadeUp}
+            className="rounded-2xl border border-slate-200 bg-gradient-to-r from-[#702283]/5 to-[#e6007e]/5 px-3 py-2 text-[10px] leading-relaxed text-slate-700 shadow-sm"
+          >
+            <p className="font-semibold text-slate-900">Leadership Note</p>
+            <p className="mt-1">{executiveSummary.leadership}</p>
+          </Motion.div>
+        </Motion.div>
       </div>
     </div>
   );
